@@ -68,14 +68,20 @@ export default function Home() {
   async function joinWaitlist(e: React.FormEvent) {
     e.preventDefault();
     try {
-      const res = await fetch("/api/waitlist", {
+      const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, url, scannedScore: report?.score }),
+        body: JSON.stringify({ email, url }),
       });
-      if (res.ok) setJoined(true);
+      const data = await res.json();
+      if (res.ok && data.url) {
+        setJoined(true);
+        window.location.href = data.url;
+      } else {
+        setError(data.error ?? "Could not start checkout. Please try again.");
+      }
     } catch {
-      /* no-op for MVP */
+      setError("Could not start checkout. Please try again.");
     }
   }
 
@@ -133,13 +139,14 @@ export default function Home() {
           </ul>
 
           <div className="cta">
-            <h3>Want this checked automatically every week?</h3>
+            <h3>Want this monitored automatically every week?</h3>
             <p>
               Continuous monitoring adds rendered checks (contrast, focus, keyboard order)
               and emails you a dated report you can keep as audit evidence.
+              <strong> £9/month — cancel any time.</strong>
             </p>
             {joined ? (
-              <p className="joined">You're on the list — we'll be in touch. ✅</p>
+              <p className="joined">Redirecting to checkout… ✅</p>
             ) : (
               <form className="waitlist" onSubmit={joinWaitlist}>
                 <input
@@ -147,10 +154,10 @@ export default function Home() {
                   placeholder="you@company.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  aria-label="Your email for monitoring updates"
+                  aria-label="Your email for the monitoring subscription"
                   required
                 />
-                <button type="submit">Notify me</button>
+                <button type="submit">Start monitoring →</button>
               </form>
             )}
           </div>
