@@ -250,11 +250,15 @@ function isPrivateIp(ip: string): boolean {
     /^192\.168\./.test(h) ||
     /^172\.(1[6-9]|2\d|3[01])\./.test(h) ||
     /^169\.254\./.test(h) || // link-local / cloud metadata (AWS, GCP, Azure)
-    h === "::1" ||
-    /^fc00:/i.test(h) ||
-    /^fe80:/i.test(h) ||
-    /^::ffff:127\./i.test(h) ||    // IPv4-mapped loopback
-    /^::ffff:169\.254\./i.test(h)  // IPv4-mapped link-local
+    h === "::" ||                                   // unspecified — resolves to 0.0.0.0
+    h === "::1" ||                                 // IPv6 loopback
+    /^f[cd][0-9a-f]{2}:/i.test(h) ||              // ULA fc00::/7 (fc00:: – fdff::)
+    /^fe80:/i.test(h) ||                           // link-local
+    /^::ffff:127\./i.test(h) ||                    // IPv4-mapped loopback
+    /^::ffff:10\./i.test(h) ||                     // IPv4-mapped RFC1918 10.x
+    /^::ffff:192\.168\./i.test(h) ||               // IPv4-mapped RFC1918 192.168.x
+    /^::ffff:172\.(1[6-9]|2\d|3[01])\./i.test(h) || // IPv4-mapped RFC1918 172.16-31.x
+    /^::ffff:169\.254\./i.test(h)                  // IPv4-mapped link-local
   );
 }
 
